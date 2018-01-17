@@ -59,9 +59,13 @@ class CalendarBD{
         }
     }
 
-    private function getEvent($id){
+    private function getEvent($id = NULL){
         $read = new Read;
-        $read->read(self::$table, 'WHERE appointment_id = :id', "id={$id}");
+        if(empty($id)){
+            $read->read(self::$table);
+        }else{
+            $read->read(self::$table, 'WHERE appointment_id = :id', "id={$id}");
+        }
         return $read->getResult();
     }
 
