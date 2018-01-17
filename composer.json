@@ -1,5 +1,5 @@
 {
-    "name": "thiago/google-calendar",
+    "name": "thiagosv/google-calendar",
     "description": "Integracao com o google calendar",
     "type": "library",
     "license": "MIT",
