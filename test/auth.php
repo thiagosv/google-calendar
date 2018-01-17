@@ -9,7 +9,7 @@
 $code = filter_input(INPUT_GET, 'code', FILTER_DEFAULT);
 
 if(!empty($code)){
-    require __DIR__ . '/vendor/autoload.php';
+    require __DIR__ . '/../vendor/autoload.php';
     $calendar = new \ThiagoSV\GoogleCalendar\Calendar;
 
     $calendar->setAccessToken($code);

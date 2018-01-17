@@ -14,7 +14,8 @@ if(!$client){
     echo "<a href='{$linkAuth}'>Conceder permissao para gerenciar o Google Calendar</a>";
 }else{
     echo "Suas credenciais sao validas!";
+    //exemplo - criacao de evento
+    $event = $calendar->createEvent('sumario', 'Rua Adao dos santos 96, Porto alegre, Rio grande do sul', 'teste de descricao', '2018-01-17 20:00:00', '2018-01-17 21:00:00', 'thiagosv97@gmail.com');
+    var_dump($event);
+
 }
-//exemplo - criacao de evento
-$event = $calendar->createEvent('sumario', 'Rua Adao dos santos 96, Porto alegre, Rio grande do sul', 'teste de descricao', '2018-01-17 20:00:00', '2018-01-17 21:00:00', 'thiagosv97@gmail.com');
-var_dump($event->getAttendees()->getEmail());
