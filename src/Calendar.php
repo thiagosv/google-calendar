@@ -124,11 +124,17 @@ class Calendar{
             ),
         );
         if (!empty($attendees)) {
-            if (filter_var($attendees, FILTER_VALIDATE_EMAIL)) {
+            $emails = [];
+            foreach($attendees as $val){
+                if (filter_var($val, FILTER_VALIDATE_EMAIL)) {
+                    $emails[] = [
+                        'email' => $val
+                    ];
+                }
+            }
+            if(!empty($emails)){
                 $this->params += [
-                    'attendees' => array(
-                        array('email' => $attendees),
-                    ),
+                    'attendees' => $emails
                 ];
             }
         }

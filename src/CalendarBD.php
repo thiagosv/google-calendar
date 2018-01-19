@@ -34,7 +34,7 @@ class CalendarBD{
         if(empty($create->getResult())){
             $this->trigger = ['error', 'Erro ao cadastrar evento, se persistir entre em contato com o administrador.'];
         }else{
-            if(!empty($event->getAttendees)){
+            if(!empty($event->getAttendees())){
                 $this->createAttendees($event->getAttendees(), $create->getResult());
             }
             if(empty($this->trigger)){
@@ -64,11 +64,37 @@ class CalendarBD{
     public function getEvent($id = NULL){
         $read = new ControllerPDO\Read;
         if(empty($id)){
-            $read->read(self::$table);
+            $dados = [];
+            $i = 0;
+            $read->readFull("SELECT * FROM appointment ORDER BY appointment_id ASC");
+            if($read->getResult()){
+                $dados = $read->getResult();
+                foreach($read->getResult() as $result){
+                    $dados[$i] = $result;
+                    $read->readFull("SELECT * FROM attendees WHERE attendees_appointment_id = :id", "id={$result['appointment_id']}");
+                    if($read->getResult()){
+                        $dados[$i]['attendees'] = $read->getResult();
+                    }
+                    $i++;
+                }
+            }
         }else{
-            $read->read(self::$table, 'WHERE appointment_id = :id', "id={$id}");
+            $dados = [];
+            $i = 0;
+            $read->readFull("SELECT * FROM appointment WHERE appointment_id = :id", "id={$id}");
+            if($read->getResult()){
+                $dados = $read->getResult();
+                foreach($read->getResult() as $result){
+                    $dados[$i] = $result;
+                    $read->readFull("SELECT * FROM attendees WHERE attendees_appointment_id = :id", "id={$result['appointment_id']}");
+                    if($read->getResult()){
+                        $dados[$i]['attendees'] = $read->getResult();
+                    }
+                    $i++;
+                }
+            }
         }
-        return $read->getResult();
+        return $dados;
     }
 
     private function createAttendees($attendeesList, $appointmentId){
