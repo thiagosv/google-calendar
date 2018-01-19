@@ -8,9 +8,7 @@
 
 namespace ThiagoSV\GoogleCalendar;
 
-use ThiagoSV\ControllerPDO\Read;
-use ThiagoSV\ControllerPDO\Create;
-use ThiagoSV\ControllerPDO\Delete;
+use ThiagoSV\ControllerPDO;
 
 class CalendarBD{
 
@@ -30,7 +28,7 @@ class CalendarBD{
             'appointment_end' => date('Y-m-d H:i:s', strtotime($event->getEnd()->getDateTime()))
         ];
 
-        $create = new Create;
+        $create = new ControllerPDO\Create;
         $create->create("appointment", $params);
 
         if(empty($create->getResult())){
@@ -49,7 +47,7 @@ class CalendarBD{
         if(empty($this->getEvent($id))){
             $this->trigger = ['error', 'Evento não encontrado para delete.'];
         }else{
-            $delete = new Delete;
+            $delete = new ControllerPDO\Delete;
             $delete->delete("appointment", 'WHERE appointmente_id = :id', "id={$id}");
             if(empty($delete->getRowCount())){
                 $this->trigger = ['error', 'Erro ao deletar evento, se persistir entre em contato com o administrador.'];
@@ -59,8 +57,12 @@ class CalendarBD{
         }
     }
 
-    private function getEvent($id = NULL){
-        $read = new Read;
+    public function getTrigger(){
+        return $this->trigger;
+    }
+
+    public function getEvent($id = NULL){
+        $read = new ControllerPDO\Read;
         if(empty($id)){
             $read->read(self::$table);
         }else{
@@ -77,7 +79,7 @@ class CalendarBD{
                 'attendees_email' => $attendees->getEmail()
             ];
 
-            $create = new Create;
+            $create = new ControllerPDO\Create;
             $create->create("attendees", $params);
 
             if(empty($create->getResult())){

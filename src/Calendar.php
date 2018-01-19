@@ -8,8 +8,7 @@
 
 namespace ThiagoSV\GoogleCalendar;
 
-class Calendar
-{
+class Calendar{
     private $client;
     private $trigger;
     private $event;
@@ -21,9 +20,9 @@ class Calendar
      * @throws \Google_Exception
      */
     public function __construct()    {
-        define('APPLICATION_NAME', 'UpInside');
+        define('APPLICATION_NAME', 'MLBIDDING');
         define('CREDENTIALS_PATH', 'C:/Users/Thiago/.credentials/google-calendar.json');
-        define('CLIENT_SECRET_PATH', __DIR__ . '/../client_secret.json');
+        define('CLIENT_SECRET_PATH', 'client_secret.json');
         define('SCOPES', implode(' ', [\Google_Service_Calendar::CALENDAR]));
         $this->client = new \Google_Client();
         $this->client->setApplicationName(APPLICATION_NAME);
