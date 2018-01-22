@@ -66,7 +66,7 @@ class CalendarBD{
         if(empty($id)){
             $dados = [];
             $i = 0;
-            $read->readFull("SELECT * FROM appointment ORDER BY appointment_id ASC");
+            $read->readFull("SELECT * FROM appointment WHERE appointment_end > now() ORDER BY appointment_start ASC");
             if($read->getResult()){
                 $dados = $read->getResult();
                 foreach($read->getResult() as $result){

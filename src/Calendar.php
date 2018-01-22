@@ -19,11 +19,20 @@ class Calendar{
      * Método responsável por inicializar a comunicação com a API do Google
      * @throws \Google_Exception
      */
-    public function __construct()    {
+    public function __construct($ajax = false)    {
         define('APPLICATION_NAME', 'MLBIDDING');
-        define('CREDENTIALS_PATH', 'C:/Users/Thiago/.credentials/google-calendar.json');
-        define('CLIENT_SECRET_PATH', 'client_secret.json');
+        if(is_dir("~")){
+            define('CREDENTIALS_PATH', '~/.credentials/google-calendar.json');
+        }else{
+            define('CREDENTIALS_PATH', 'C:/Users/Thiago/.credentials/google-calendar.json');
+        }
+        if($ajax){
+            define('CLIENT_SECRET_PATH', '../client_secret.json');
+        }else{
+            define('CLIENT_SECRET_PATH', 'client_secret.json');
+        }
         define('SCOPES', implode(' ', [\Google_Service_Calendar::CALENDAR]));
+
         $this->client = new \Google_Client();
         $this->client->setApplicationName(APPLICATION_NAME);
         $this->client->setScopes(SCOPES);

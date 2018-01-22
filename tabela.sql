@@ -11,7 +11,7 @@
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 
--- Copiando estrutura para tabela google-calendar.appointment
+-- Copiando estrutura para tabela mlbidding.appointment
 CREATE TABLE IF NOT EXISTS `appointment` (
   `appointment_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `appointment_title` varchar(255) DEFAULT NULL,
@@ -23,11 +23,11 @@ CREATE TABLE IF NOT EXISTS `appointment` (
   PRIMARY KEY (`appointment_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Copiando dados para a tabela google-calendar.appointment: ~0 rows (aproximadamente)
+-- Copiando dados para a tabela mlbidding.appointment: ~0 rows (aproximadamente)
 /*!40000 ALTER TABLE `appointment` DISABLE KEYS */;
 /*!40000 ALTER TABLE `appointment` ENABLE KEYS */;
 
--- Copiando estrutura para tabela google-calendar.attendees
+-- Copiando estrutura para tabela mlbidding.attendees
 CREATE TABLE IF NOT EXISTS `attendees` (
   `attendees_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `attendees_appointment_id` int(11) unsigned DEFAULT NULL,
@@ -35,10 +35,10 @@ CREATE TABLE IF NOT EXISTS `attendees` (
   `attendees_email` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`attendees_id`),
   KEY `FK_attendees_appointment` (`attendees_appointment_id`),
-  CONSTRAINT `FK_attendees_appointment` FOREIGN KEY (`attendees_appointment_id`) REFERENCES `appointment` (`appointment_id`)
+  CONSTRAINT `FK_attendees_appointment` FOREIGN KEY (`attendees_appointment_id`) REFERENCES `appointment` (`appointment_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- Copiando dados para a tabela google-calendar.attendees: ~0 rows (aproximadamente)
+-- Copiando dados para a tabela mlbidding.attendees: ~0 rows (aproximadamente)
 /*!40000 ALTER TABLE `attendees` DISABLE KEYS */;
 /*!40000 ALTER TABLE `attendees` ENABLE KEYS */;
 
