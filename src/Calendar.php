@@ -77,6 +77,12 @@ class Calendar{
      * @return bool|\Google_Client
      */
     public function getClient(){
+        $credentialsPath = $this->expandHomeDirectory(CREDENTIALS_PATH);
+        if($this->client->isAccessTokenExpired()){
+            if(is_dir($credentialsPath)){
+                unlink($credentialsPath);
+            }
+        }
         // Load previously authorized credentials from a file.
         $credentialsPath = $this->expandHomeDirectory(CREDENTIALS_PATH);
         if (!file_exists($credentialsPath)) {
@@ -86,11 +92,11 @@ class Calendar{
             $accessToken = json_decode(file_get_contents($credentialsPath), true);
             $this->client->setAccessToken($accessToken);
         }
-        // Refresh the token if it's expired.
-        if ($this->client->isAccessTokenExpired()) {
-            $this->client->fetchAccessTokenWithRefreshToken($this->client->getRefreshToken());
-            file_put_contents($credentialsPath, json_encode($this->client->getAccessToken()));
-        }
+        // Refresh the token if it's expired. /* nao esta vindo o refreshToken, entao essa parte do codigo ira ficar comentada*/
+//        if ($this->client->isAccessTokenExpired()) {
+//            $this->client->fetchAccessTokenWithRefreshToken($this->client->getRefreshToken());
+//            file_put_contents($credentialsPath, json_encode($this->client->getAccessToken()));
+//        }
         return $this->client;
     }
     /**

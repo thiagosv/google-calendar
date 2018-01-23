@@ -18,12 +18,13 @@ class CalendarBD{
 
     }
 
-    public function createEvent($event){
+    public function createEvent($event, $background = NULL){
         $params = [
             'appointment_title' => $event->getSummary(),
             'appointment_description' => $event->getDescription(),
             'appointment_location' => $event->getLocation(),
             'appointment_event_id' => $event->getId(),
+            'appointment_background' => $background,
             'appointment_start' => date('Y-m-d H:i:s', strtotime($event->getStart()->getDateTime())),
             'appointment_end' => date('Y-m-d H:i:s', strtotime($event->getEnd()->getDateTime()))
         ];
@@ -32,27 +33,27 @@ class CalendarBD{
         $create->create("appointment", $params);
 
         if(empty($create->getResult())){
-            $this->trigger = ['error', 'Erro ao cadastrar evento, se persistir entre em contato com o administrador.'];
+            $this->trigger = ['error', 'Oops!', 'Erro ao cadastrar evento, se persistir entre em contato com o administrador.'];
         }else{
             if(!empty($event->getAttendees())){
                 $this->createAttendees($event->getAttendees(), $create->getResult());
             }
             if(empty($this->trigger)){
-                $this->trigger = ['success', 'Evento cadastrado com sucesso!'];
+                $this->trigger = ['success', 'Sucesso!', 'Evento cadastrado com sucesso!'];
             }
         }
     }
 
     public function deleteEvent($id){
         if(empty($this->getEvent($id))){
-            $this->trigger = ['error', 'Evento não encontrado para delete.'];
+            $this->trigger = ['error', 'Oops!', 'Evento não encontrado para delete.'];
         }else{
             $delete = new ControllerPDO\Delete;
-            $delete->delete("appointment", 'WHERE appointmente_id = :id', "id={$id}");
+            $delete->delete("appointment", 'WHERE appointment_id = :id', "id={$id}");
             if(empty($delete->getRowCount())){
-                $this->trigger = ['error', 'Erro ao deletar evento, se persistir entre em contato com o administrador.'];
+                $this->trigger = ['error', 'Oops!', 'Erro ao deletar evento, se persistir entre em contato com o administrador.'];
             }else{
-                $this->trigger = ['success', 'Evento deletado com sucesso.'];
+                $this->trigger = ['success', 'Sucesso!', 'Evento deletado com sucesso.'];
             }
         }
     }
@@ -61,12 +62,21 @@ class CalendarBD{
         return $this->trigger;
     }
 
-    public function getEvent($id = NULL){
+    public function getEvent($id = NULL, $limit = NULL){
         $read = new ControllerPDO\Read;
+        $query = new ControllerPDO\QueryCreator();
+        $query->from("appointment");
+        $query->select("*");
+
         if(empty($id)){
             $dados = [];
             $i = 0;
-            $read->readFull("SELECT * FROM appointment WHERE appointment_end > now() ORDER BY appointment_start ASC");
+            $query->where("appointment_end > now()");
+            $query->order(["appointment_start" => "ASC"]);
+            if(!empty($limit)){
+                $query->limit($limit);
+            }
+            $read->readFull($query->getQuery(), $query->getPlaces());
             if($read->getResult()){
                 $dados = $read->getResult();
                 foreach($read->getResult() as $result){
@@ -81,7 +91,9 @@ class CalendarBD{
         }else{
             $dados = [];
             $i = 0;
-            $read->readFull("SELECT * FROM appointment WHERE appointment_id = :id", "id={$id}");
+            $query->where("appointment_id = :id");
+            $query->places("id={$id}");
+            $read->readFull($query->getQuery(), $query->getPlaces());
             if($read->getResult()){
                 $dados = $read->getResult();
                 foreach($read->getResult() as $result){
@@ -109,7 +121,7 @@ class CalendarBD{
             $create->create("attendees", $params);
 
             if(empty($create->getResult())){
-                $this->trigger = ['error', 'Erro ao cadastrar participantes do evento no banco de dados.'];
+                $this->trigger = ['error', 'Oops!', 'Erro ao cadastrar participantes do evento no banco de dados.'];
             }
         }
     }
