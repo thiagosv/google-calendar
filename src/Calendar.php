@@ -8,27 +8,31 @@
 
 namespace ThiagoSV\GoogleCalendar;
 
-class Calendar{
+class Calendar
+{
     private $client;
     private $trigger;
     private $event;
     private $params;
     private $service;
+    private $colors;
+
     /**
      * Calendar constructor.
      * Método responsável por inicializar a comunicação com a API do Google
      * @throws \Google_Exception
      */
-    public function __construct($ajax = false)    {
+    public function __construct($ajax = false)
+    {
         define('APPLICATION_NAME', 'MLBIDDING');
-        if(is_dir("~")){
+        if (is_dir("~")) {
             define('CREDENTIALS_PATH', '~/.credentials/google-calendar.json');
-        }else{
+        } else {
             define('CREDENTIALS_PATH', 'C:/Users/Thiago/.credentials/google-calendar.json');
         }
-        if($ajax){
+        if ($ajax) {
             define('CLIENT_SECRET_PATH', '../client_secret.json');
-        }else{
+        } else {
             define('CLIENT_SECRET_PATH', 'client_secret.json');
         }
         define('SCOPES', implode(' ', [\Google_Service_Calendar::CALENDAR]));
@@ -39,28 +43,34 @@ class Calendar{
         $this->client->setAuthConfig(CLIENT_SECRET_PATH);
         $this->client->setAccessType('offline');
     }
+
     /**
      * <b>getTrigger:</b> Método responsável por retornar mensagem de erro
      * @return mixed
      */
-    public function getTrigger(){
+    public function getTrigger()
+    {
         return $this->trigger;
     }
+
     /**
      * <b>createClient:</b> Método responsável por gerar o link de autenticação da API
      * @return string
      */
-    public function createClient(){
+    public function createClient()
+    {
         $authUrl = $this->client->createAuthUrl();
         return $authUrl;
     }
+
     /**
      * <b>setAccessToken:</b> Método responsável por criar o credenciamento da API,
      * salvar o arquivo .json no diretório especificado da define
      * @param $authCode
      * @return bool
      */
-    public function setAccessToken($authCode){
+    public function setAccessToken($authCode)
+    {
         $accessToken = $this->client->fetchAccessTokenWithAuthCode($authCode);
         // Retorna o caminho absoluto
         $credentialsPath = $this->expandHomeDirectory(CREDENTIALS_PATH);
@@ -72,17 +82,13 @@ class Calendar{
         file_put_contents($credentialsPath, json_encode($accessToken));
         return true;
     }
+
     /**
      * <b>getClient:</b> Método responsável por obter o client do Google
      * @return bool|\Google_Client
      */
-    public function getClient(){
-        $credentialsPath = $this->expandHomeDirectory(CREDENTIALS_PATH);
-        if($this->client->isAccessTokenExpired()){
-            if(is_dir($credentialsPath)){
-                unlink($credentialsPath);
-            }
-        }
+    public function getClient()
+    {
         // Load previously authorized credentials from a file.
         $credentialsPath = $this->expandHomeDirectory(CREDENTIALS_PATH);
         if (!file_exists($credentialsPath)) {
@@ -92,6 +98,14 @@ class Calendar{
             $accessToken = json_decode(file_get_contents($credentialsPath), true);
             $this->client->setAccessToken($accessToken);
         }
+
+        if ($this->client->isAccessTokenExpired()) {
+            if (is_file($credentialsPath)) {
+                unlink($credentialsPath);
+                return false;
+            }
+        }
+
         // Refresh the token if it's expired. /* nao esta vindo o refreshToken, entao essa parte do codigo ira ficar comentada*/
 //        if ($this->client->isAccessTokenExpired()) {
 //            $this->client->fetchAccessTokenWithRefreshToken($this->client->getRefreshToken());
@@ -99,6 +113,7 @@ class Calendar{
 //        }
         return $this->client;
     }
+
     /**
      * <b>createEvent:</b> Método responsável por criar o evento dentro do Google Calendar
      * @param STRING $summary = Título do Evento
@@ -109,7 +124,8 @@ class Calendar{
      * @param null|STRING $attendees = E-mail do Convidado
      * @return bool|\Google_Service_Calendar_Event
      */
-    public function createEvent($summary, $location, $description, $start, $end, $attendees = null){
+    public function createEvent($summary, $location, $description, $start, $end, $attendees = null, $colorId = null)
+    {
         if (date('Y-m-d H:i:s', strtotime($start)) < date('Y-m-d H:i:s')) {
             $this->trigger = "A data inicial é menor do que a data atual, por favor verifique e tente novamente!";
             return false;
@@ -138,16 +154,21 @@ class Calendar{
                 ),
             ),
         );
+        if (!empty($colorId)) {
+            $this->params += [
+                'colorId' => $colorId
+            ];
+        }
         if (!empty($attendees)) {
             $emails = [];
-            foreach($attendees as $val){
+            foreach ($attendees as $val) {
                 if (filter_var($val, FILTER_VALIDATE_EMAIL)) {
                     $emails[] = [
                         'email' => $val
                     ];
                 }
             }
-            if(!empty($emails)){
+            if (!empty($emails)) {
                 $this->params += [
                     'attendees' => $emails
                 ];
@@ -158,20 +179,34 @@ class Calendar{
         $this->event = $this->service->events->insert('primary', $this->event, ['sendNotifications' => true]);
         return $this->event;
     }
+
     /**
      * <b>deleteEvent:</b> Método responsável por deletar um evento do Google Calendar
      * @param STRING $eventId = ID do evento do Google
      */
-    public function deleteEvent($eventId){
+    public function deleteEvent($eventId)
+    {
         $this->service = new \Google_Service_Calendar($this->client);
         $this->service->events->delete('primary', $eventId, ['sendNotifications' => true]);
     }
+
+    /**
+     * <b>getColors:</b> Método responsável por trazer as cores disponiveis no google calendar, para integracao com as cores.
+    */
+    public function getColors()
+    {
+        $this->service = new \Google_Service_Calendar($this->client);
+        $this->colors = $this->service->colors->get();
+        return $this->colors->getCalendar();
+    }
+
     /**
      * <b>expandHomeDirectory:</b> Método responsável por expandir o diretório e normalizar o caminho absoluto
      * @param STRING $path = Caminho que deseja ser verificado
      * @return mixed
      */
-    private function expandHomeDirectory($path){
+    private function expandHomeDirectory($path)
+    {
         $homeDirectory = getenv('HOME');
         if (empty($homeDirectory)) {
             $homeDirectory = getenv('HOMEDRIVE') . getenv('HOMEPATH');

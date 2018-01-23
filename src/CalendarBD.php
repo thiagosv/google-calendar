@@ -10,96 +10,106 @@ namespace ThiagoSV\GoogleCalendar;
 
 use ThiagoSV\ControllerPDO;
 
-class CalendarBD{
+class CalendarBD
+{
 
     private $trigger;
 
-    public function __construct(){
+    public function __construct()
+    {
 
     }
 
-    public function createEvent($event, $background = NULL){
+    public function createEvent($event, $background = NULL)
+    {
         $params = [
             'appointment_title' => $event->getSummary(),
             'appointment_description' => $event->getDescription(),
             'appointment_location' => $event->getLocation(),
             'appointment_event_id' => $event->getId(),
-            'appointment_background' => $background,
             'appointment_start' => date('Y-m-d H:i:s', strtotime($event->getStart()->getDateTime())),
             'appointment_end' => date('Y-m-d H:i:s', strtotime($event->getEnd()->getDateTime()))
         ];
-
+        if (!empty($background) && is_array($background)) {
+            $params += [
+                'appointment_background' => $background[1],
+                'appointment_foreground' => $background[2]
+            ];
+        }
         $create = new ControllerPDO\Create;
         $create->create("appointment", $params);
 
-        if(empty($create->getResult())){
+        if (empty($create->getResult())) {
             $this->trigger = ['error', 'Oops!', 'Erro ao cadastrar evento, se persistir entre em contato com o administrador.'];
-        }else{
-            if(!empty($event->getAttendees())){
+        } else {
+            if (!empty($event->getAttendees())) {
                 $this->createAttendees($event->getAttendees(), $create->getResult());
             }
-            if(empty($this->trigger)){
+            if (empty($this->trigger)) {
                 $this->trigger = ['success', 'Sucesso!', 'Evento cadastrado com sucesso!'];
             }
         }
     }
 
-    public function deleteEvent($id){
-        if(empty($this->getEvent($id))){
+    public function deleteEvent($id)
+    {
+        if (empty($this->getEvent($id))) {
             $this->trigger = ['error', 'Oops!', 'Evento não encontrado para delete.'];
-        }else{
+        } else {
             $delete = new ControllerPDO\Delete;
             $delete->delete("appointment", 'WHERE appointment_id = :id', "id={$id}");
-            if(empty($delete->getRowCount())){
+            if (empty($delete->getRowCount())) {
                 $this->trigger = ['error', 'Oops!', 'Erro ao deletar evento, se persistir entre em contato com o administrador.'];
-            }else{
+            } else {
                 $this->trigger = ['success', 'Sucesso!', 'Evento deletado com sucesso.'];
             }
         }
     }
 
-    public function getTrigger(){
+    public function getTrigger()
+    {
         return $this->trigger;
     }
 
-    public function getEvent($id = NULL, $limit = NULL){
+    public function getEvent($id = NULL, $limit = NULL)
+    {
         $read = new ControllerPDO\Read;
         $query = new ControllerPDO\QueryCreator();
         $query->from("appointment");
         $query->select("*");
 
-        if(empty($id)){
+        if (empty($id)) {
             $dados = [];
             $i = 0;
             $query->where("appointment_end > now()");
             $query->order(["appointment_start" => "ASC"]);
-            if(!empty($limit)){
+            if (!empty($limit)) {
                 $query->limit($limit);
             }
             $read->readFull($query->getQuery(), $query->getPlaces());
-            if($read->getResult()){
+            if ($read->getResult()) {
                 $dados = $read->getResult();
-                foreach($read->getResult() as $result){
+                foreach ($read->getResult() as $result) {
                     $dados[$i] = $result;
                     $read->readFull("SELECT * FROM attendees WHERE attendees_appointment_id = :id", "id={$result['appointment_id']}");
-                    if($read->getResult()){
+                    if ($read->getResult()) {
                         $dados[$i]['attendees'] = $read->getResult();
                     }
                     $i++;
                 }
             }
-        }else{
+        } else {
             $dados = [];
             $i = 0;
             $query->where("appointment_id = :id");
             $query->places("id={$id}");
             $read->readFull($query->getQuery(), $query->getPlaces());
-            if($read->getResult()){
+            if ($read->getResult()) {
                 $dados = $read->getResult();
-                foreach($read->getResult() as $result){
+                foreach ($read->getResult() as $result) {
                     $dados[$i] = $result;
                     $read->readFull("SELECT * FROM attendees WHERE attendees_appointment_id = :id", "id={$result['appointment_id']}");
-                    if($read->getResult()){
+                    if ($read->getResult()) {
                         $dados[$i]['attendees'] = $read->getResult();
                     }
                     $i++;
@@ -109,8 +119,9 @@ class CalendarBD{
         return $dados;
     }
 
-    private function createAttendees($attendeesList, $appointmentId){
-        foreach($attendeesList as $attendees){
+    private function createAttendees($attendeesList, $appointmentId)
+    {
+        foreach ($attendeesList as $attendees) {
             $params = [
                 'attendees_appointment_id' => $appointmentId,
                 'attendees_name' => $attendees->getDisplayName(),
@@ -120,7 +131,7 @@ class CalendarBD{
             $create = new ControllerPDO\Create;
             $create->create("attendees", $params);
 
-            if(empty($create->getResult())){
+            if (empty($create->getResult())) {
                 $this->trigger = ['error', 'Oops!', 'Erro ao cadastrar participantes do evento no banco de dados.'];
             }
         }
