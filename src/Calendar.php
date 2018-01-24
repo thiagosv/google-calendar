@@ -207,13 +207,13 @@ class Calendar
         $this->colors = $this->service->colors->get();
 
         if (!empty($color_id)) {
-            foreach ($this->colors->getCalendar() as $key => $color) {
+            foreach ($this->colors->getEvent() as $key => $color) {
                 if ($key == $color_id) {
                     return $color;
                 }
             }
         } else {
-            return $this->colors->getCalendar();
+            return $this->colors->getEvent();
         }
 
     }
