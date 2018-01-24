@@ -21,11 +21,12 @@ CREATE TABLE IF NOT EXISTS `appointment` (
   `appointment_start` timestamp NULL DEFAULT NULL,
   `appointment_end` timestamp NULL DEFAULT NULL,
   `appointment_background` varchar(50) DEFAULT NULL,
-  `appointment_foreground` int(11) DEFAULT NULL,
+  `appointment_foreground` varchar(50) DEFAULT NULL,
+  `appointment_usuario_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`appointment_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=52 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Copiando dados para a tabela mlbidding.appointment: ~0 rows (aproximadamente)
+-- Copiando dados para a tabela mlbidding.appointment: ~1 rows (aproximadamente)
 /*!40000 ALTER TABLE `appointment` DISABLE KEYS */;
 /*!40000 ALTER TABLE `appointment` ENABLE KEYS */;
 

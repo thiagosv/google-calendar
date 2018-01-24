@@ -22,20 +22,28 @@ class Calendar
      * Método responsável por inicializar a comunicação com a API do Google
      * @throws \Google_Exception
      */
-    public function __construct($ajax = false)
+    public function __construct($ajax = NULL)
     {
-        define('APPLICATION_NAME', 'MLBIDDING');
-        if (is_dir("~")) {
-            define('CREDENTIALS_PATH', '~/.credentials/google-calendar.json');
-        } else {
-            define('CREDENTIALS_PATH', 'C:/Users/Thiago/.credentials/google-calendar.json');
+        if (!defined('APPLICATION_NAME')) {
+            define('APPLICATION_NAME', 'MLBIDDING');
         }
-        if ($ajax) {
-            define('CLIENT_SECRET_PATH', '../client_secret.json');
-        } else {
-            define('CLIENT_SECRET_PATH', 'client_secret.json');
+        if (!defined('CREDENTIALS_PATH')) {
+            if (is_dir("~")) {
+                define('CREDENTIALS_PATH', '~/.credentials/google-calendar.json');
+            } else {
+                define('CREDENTIALS_PATH', 'C:/Users/Thiago/.credentials/google-calendar.json');
+            }
         }
-        define('SCOPES', implode(' ', [\Google_Service_Calendar::CALENDAR]));
+        if (!defined('CLIENT_SECRET_PATH')) {
+            if ($ajax) {
+                define('CLIENT_SECRET_PATH', '../client_secret.json');
+            } else {
+                define('CLIENT_SECRET_PATH', 'client_secret.json');
+            }
+        }
+        if (!defined('SCOPES')) {
+            define('SCOPES', implode(' ', [\Google_Service_Calendar::CALENDAR]));
+        }
 
         $this->client = new \Google_Client();
         $this->client->setApplicationName(APPLICATION_NAME);
@@ -192,12 +200,42 @@ class Calendar
 
     /**
      * <b>getColors:</b> Método responsável por trazer as cores disponiveis no google calendar, para integracao com as cores.
-    */
-    public function getColors()
+     */
+    public function getColors($color_id = NULL)
     {
         $this->service = new \Google_Service_Calendar($this->client);
         $this->colors = $this->service->colors->get();
-        return $this->colors->getCalendar();
+
+        if (!empty($color_id)) {
+            foreach ($this->colors->getCalendar() as $key => $color) {
+                if ($key == $color_id) {
+                    return $color;
+                }
+            }
+        } else {
+            return $this->colors->getCalendar();
+        }
+
+    }
+
+    public function getListEvents()
+    {
+        $this->service = new \Google_Service_Calendar($this->client);
+        $events = $this->service->events->listEvents('primary');
+        $eventos = [];
+        while (true) {
+            foreach ($events->getItems() as $event) {
+                $eventos[] = $event;
+            }
+            $pageToken = $events->getNextPageToken();
+            if ($pageToken) {
+                $optParams = array('pageToken' => $pageToken);
+                $events = $service->events->listEvents('primary', $optParams);
+            } else {
+                break;
+            }
+        }
+        return $eventos;
     }
 
     /**

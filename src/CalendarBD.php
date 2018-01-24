@@ -14,10 +14,14 @@ class CalendarBD
 {
 
     private $trigger;
+    private $query;
+    private $appointment_usuario_id;
 
-    public function __construct()
+    public function __construct($appointment_usuario_id = NULL)
     {
-
+        if(!empty($appointment_usuario_id)){
+            $this->appointment_usuario_id = $appointment_usuario_id;
+        }
     }
 
     public function createEvent($event, $background = NULL)
@@ -32,8 +36,13 @@ class CalendarBD
         ];
         if (!empty($background) && is_array($background)) {
             $params += [
-                'appointment_background' => $background[1],
-                'appointment_foreground' => $background[2]
+                'appointment_background' => $background[0],
+                'appointment_foreground' => $background[1]
+            ];
+        }
+        if (!empty($this->appointment_usuario_id)) {
+            $params += [
+                'appointment_usuario_id' => $this->appointment_usuario_id
             ];
         }
         $create = new ControllerPDO\Create;
@@ -71,51 +80,44 @@ class CalendarBD
         return $this->trigger;
     }
 
-    public function getEvent($id = NULL, $limit = NULL)
+    public function getEvent($appointment_id = NULL, $appointment_event_id = NULL, $limit = NULL)
     {
         $read = new ControllerPDO\Read;
-        $query = new ControllerPDO\QueryCreator();
-        $query->from("appointment");
-        $query->select("*");
+        $this->query = new ControllerPDO\QueryCreator();
+        $this->query->from("appointment");
+        $this->query->select("*");
 
-        if (empty($id)) {
-            $dados = [];
-            $i = 0;
-            $query->where("appointment_end > now()");
-            $query->order(["appointment_start" => "ASC"]);
-            if (!empty($limit)) {
-                $query->limit($limit);
-            }
-            $read->readFull($query->getQuery(), $query->getPlaces());
-            if ($read->getResult()) {
-                $dados = $read->getResult();
-                foreach ($read->getResult() as $result) {
-                    $dados[$i] = $result;
-                    $read->readFull("SELECT * FROM attendees WHERE attendees_appointment_id = :id", "id={$result['appointment_id']}");
-                    if ($read->getResult()) {
-                        $dados[$i]['attendees'] = $read->getResult();
-                    }
-                    $i++;
+        $dados = [];
+        $i = 0;
+        if (!empty($appointment_id)) {
+            $this->query->where("appointment_id = :appointment_id");
+            $this->query->places("appointment_id={$appointment_id}");
+        }
+        if (!empty($appointment_event_id)) {
+            $this->query->where("appointment_event_id = :appointment_event_id");
+            $this->query->places("appointment_event_id={$appointment_event_id}");
+        }
+        if (!empty($this->appointment_usuario_id)) {
+            $this->query->where("appointment_usuario_id = :appointment_usuario_id");
+            $this->query->places("appointment_usuario_id={$this->appointment_usuario_id}");
+        }
+        $this->query->order(["appointment_start" => "ASC"]);
+        if (!empty($limit)) {
+            $this->query->limit($limit);
+        }
+        $read->readFull($this->query->getQuery(), $this->query->getPlaces());
+        if ($read->getResult()) {
+            $dados = $read->getResult();
+            foreach ($read->getResult() as $result) {
+                $dados[$i] = $result;
+                $read->readFull("SELECT * FROM attendees WHERE attendees_appointment_id = :attendees_appointment_id", "attendees_appointment_id={$result['appointment_id']}");
+                if ($read->getResult()) {
+                    $dados[$i]['attendees'] = $read->getResult();
                 }
-            }
-        } else {
-            $dados = [];
-            $i = 0;
-            $query->where("appointment_id = :id");
-            $query->places("id={$id}");
-            $read->readFull($query->getQuery(), $query->getPlaces());
-            if ($read->getResult()) {
-                $dados = $read->getResult();
-                foreach ($read->getResult() as $result) {
-                    $dados[$i] = $result;
-                    $read->readFull("SELECT * FROM attendees WHERE attendees_appointment_id = :id", "id={$result['appointment_id']}");
-                    if ($read->getResult()) {
-                        $dados[$i]['attendees'] = $read->getResult();
-                    }
-                    $i++;
-                }
+                $i++;
             }
         }
+
         return $dados;
     }
 
