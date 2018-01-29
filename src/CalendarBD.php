@@ -17,10 +17,10 @@ class CalendarBD
     private $query;
     private $appointment_usuario_id;
 
-    public function __construct($appointment_usuario_id = NULL)
+    public function __construct($appointment_user_id = NULL)
     {
-        if(!empty($appointment_usuario_id)){
-            $this->appointment_usuario_id = $appointment_usuario_id;
+        if(!empty($appointment_user_id)){
+            $this->appointment_user_id = appointment_user_id;
         }
     }
 
