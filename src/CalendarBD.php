@@ -40,9 +40,9 @@ class CalendarBD
                 'appointment_foreground' => $background[1]
             ];
         }
-        if (!empty($this->appointment_usuario_id)) {
+        if (!empty($this->appointment_user_id)) {
             $params += [
-                'appointment_usuario_id' => $this->appointment_usuario_id
+                'appointment_user_id' => $this->appointment_user_id
             ];
         }
         $create = new ControllerPDO\Create;
