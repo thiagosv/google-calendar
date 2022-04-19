@@ -12,7 +12,7 @@
     "minimum-stability": "dev",
     "require": {
         "google/apiclient": "2.2.1",
-        "thiagosv/controller-pdo": "v1.0.0"
+        "thiagosv/controller-pdo": "v1.0.1"
     },
     "autoload": {
         "psr-4": {
